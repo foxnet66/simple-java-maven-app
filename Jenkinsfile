@@ -1,22 +1,59 @@
 pipeline {
   agent any
 
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    skipDefaultCheckout(false)
+  }
+
+  tools {
+    jdk 'jdk-17'
+    maven 'maven-3'
+  }
+
+  environment {
+    MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+  }
+
   stages {
-    stage('Env') {
+    stage('Checkout') {
       steps {
-        sh 'echo "PATH=$PATH"'
-        sh 'which mvn || true'
-        sh 'mvn -v || true'
+        checkout scm
       }
     }
 
     stage('Build') {
       steps {
-        withEnv(["PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"]) {
-          sh 'mvn -v'
-          sh 'mvn -B -DskipTests clean package'
+        sh 'java -version'
+        sh 'mvn -v'
+        sh 'mvn -B -DskipTests clean package'
+      }
+      post {
+        success {
+          archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
       }
+    }
+
+    stage('Test') {
+      when {
+        expression { fileExists('src/test/java') }
+      }
+      steps {
+        sh 'mvn -B test'
+      }
+      post {
+        always {
+          junit 'target/surefire-reports/*.xml'
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs()
     }
   }
 }
