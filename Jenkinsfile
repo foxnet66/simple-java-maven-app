@@ -1,10 +1,6 @@
 pipeline {
   agent any
 
-  environment {
-    SONARQUBE_SERVER = 'sonar-server'
-  }
-
   options {
     timestamps()
     disableConcurrentBuilds()
@@ -18,6 +14,7 @@ pipeline {
 
   environment {
     MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+    SONARQUBE_SERVER = 'sonar-server'
   }
 
   stages {
