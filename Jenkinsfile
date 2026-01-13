@@ -15,6 +15,8 @@ pipeline {
   environment {
     MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     SONARQUBE_SERVER = 'sonar-server'
+    SONAR_TOKEN = 'sonar-token'
+    BRANCH_NAME = 'master'
   }
 
   stages {
