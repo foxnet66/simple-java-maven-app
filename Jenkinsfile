@@ -49,10 +49,10 @@ pipeline {
         }
       }
     }
-  }
 
-  stage('SonarQube') {
+    stage('SAST (SonarQube)') {
       steps {
+        // 将 SonarQube 环境变量注入（如 SONAR_HOST_URL）
         withSonarQubeEnv("${SONARQUBE_SERVER}") {
           sh """
             mvn -B sonar:sonar \
@@ -64,6 +64,9 @@ pipeline {
         }
       }
     }
+  }
+
+
 
 
   post {
