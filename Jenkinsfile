@@ -51,6 +51,21 @@ pipeline {
     }
   }
 
+stage('SAST (SonarQube)') {
+      steps {
+        withSonarQubeEnv("${SONARQUBE_SERVER}") {
+          sh """
+            mvn -B sonar:sonar \
+              -Dsonar.login=${SONAR_TOKEN} \
+              -Dsonar.projectKey=my-project \
+              -Dsonar.projectName=my-project \
+              -Dsonar.branch.name=${BRANCH_NAME}
+          """
+        }
+      }
+    }
+
+
   post {
     always {
       cleanWs()
