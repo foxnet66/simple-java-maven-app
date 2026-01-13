@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  environment {
+    SONARQUBE_SERVER = 'sonar-server'
+  }
+
   options {
     timestamps()
     disableConcurrentBuilds()
