@@ -56,13 +56,13 @@ pipeline {
     stage('SAST (SonarQube)') {
       steps {
         withSonarQubeEnv(env.SONARQUBE_SERVER) {   // ✅ 用 env.
-          sh """
-            mvn -B sonar:sonar \
-              -Dsonar.login=${SONAR_TOKEN} \
-              -Dsonar.projectKey=my-project \
-              -Dsonar.projectName=my-project \
-              -Dsonar.branch.name=${BRANCH_NAME}
-          """
+sh '''
+  mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar \
+    -Dsonar.login=$SONAR_TOKEN \
+    -Dsonar.projectKey=my-project \
+    -Dsonar.projectName=my-project \
+    -Dsonar.branch.name=$BRANCH_NAME
+'''
         }
       }
     }
