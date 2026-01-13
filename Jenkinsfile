@@ -16,7 +16,6 @@ pipeline {
     MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     SONARQUBE_SERVER = 'sonar-server'
     SONAR_TOKEN = credentials('sonar-token')   // ✅ 从 Jenkins Credentials 取
-    BRANCH_NAME = 'master'
   }
 
   stages {
@@ -60,8 +59,7 @@ sh '''
   mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar \
     -Dsonar.login=$SONAR_TOKEN \
     -Dsonar.projectKey=my-project \
-    -Dsonar.projectName=my-project \
-    -Dsonar.branch.name=$BRANCH_NAME
+    -Dsonar.projectName=my-project
 '''
         }
       }
