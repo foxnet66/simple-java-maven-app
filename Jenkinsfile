@@ -51,7 +51,7 @@ pipeline {
     }
   }
 
-stage('SAST (SonarQube)') {
+  stage('SonarQube') {
       steps {
         withSonarQubeEnv("${SONARQUBE_SERVER}") {
           sh """
