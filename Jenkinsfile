@@ -15,7 +15,7 @@ pipeline {
   environment {
     MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     SONARQUBE_SERVER = 'sonar-server'
-    SONAR_TOKEN = 'sonar-token'
+    SONAR_TOKEN = credentials('sonar-token')   // ✅ 从 Jenkins Credentials 取
     BRANCH_NAME = 'master'
   }
 
@@ -55,8 +55,7 @@ pipeline {
 
     stage('SAST (SonarQube)') {
       steps {
-        // 将 SonarQube 环境变量注入（如 SONAR_HOST_URL）
-        withSonarQubeEnv("${SONARQUBE_SERVER}") {
+        withSonarQubeEnv(env.SONARQUBE_SERVER) {   // ✅ 用 env.
           sh """
             mvn -B sonar:sonar \
               -Dsonar.login=${SONAR_TOKEN} \
@@ -67,10 +66,21 @@ pipeline {
         }
       }
     }
+
+    // （可选但很建议）加质量门禁
+    stage('Quality Gate') {
+      steps {
+        timeout(time: 10, unit: 'MINUTES') {
+          script {
+            def qg = waitForQualityGate()
+            if (qg.status != 'OK') {
+              error "Quality Gate failed: ${qg.status}"
+            }
+          }
+        }
+      }
+    }
   }
-
-
-
 
   post {
     always {
