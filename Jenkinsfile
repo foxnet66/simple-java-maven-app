@@ -15,58 +15,42 @@ pipeline {
   environment {
     MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
     SONARQUBE_SERVER = 'sonar-server'
-    SONAR_TOKEN = credentials('sonar-token')   // ✅ 从 Jenkins Credentials 取
+    SONAR_TOKEN = credentials('sonar-token')
   }
 
   stages {
     stage('Checkout') {
-      steps {
-        checkout scm
-      }
+      steps { checkout scm }
     }
 
-    stage('Build') {
+    stage('Build & Test') {
       steps {
-        sh 'java -version'
+        sh 'echo "JAVA_HOME=$JAVA_HOME"'
+        sh 'which java && java -version'
         sh 'mvn -v'
-        sh 'mvn -B -DskipTests clean package'
+        sh 'mvn -B clean verify'
       }
       post {
-        success {
-          archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-        }
-      }
-    }
-
-    stage('Test') {
-      when {
-        expression { fileExists('src/test/java') }
-      }
-      steps {
-        sh 'mvn -B test'
-      }
-      post {
-        always {
-          junit 'target/surefire-reports/*.xml'
-        }
+        always { junit 'target/surefire-reports/*.xml' }
+        success { archiveArtifacts artifacts: 'target/*.jar', fingerprint: true }
       }
     }
 
     stage('SAST (SonarQube)') {
       steps {
-        withSonarQubeEnv(env.SONARQUBE_SERVER) {   // ✅ 用 env.
-sh '''
-  mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar \
-    -Dsonar.login=$SONAR_TOKEN \
-    -Dsonar.projectKey=my-project \
-    -Dsonar.projectName=my-project
-'''
+        withSonarQubeEnv(env.SONARQUBE_SERVER) {
+          sh '''
+            mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar \
+              -Dsonar.login=$SONAR_TOKEN \
+              -Dsonar.projectKey=my-project \
+              -Dsonar.projectName=my-project
+          '''
         }
       }
     }
 
-    // （可选但很建议）加质量门禁
     stage('Quality Gate') {
+      when { anyOf { branch 'master'; branch 'main' } }
       steps {
         timeout(time: 10, unit: 'MINUTES') {
           script {
@@ -81,8 +65,6 @@ sh '''
   }
 
   post {
-    always {
-      cleanWs()
-    }
+    always { cleanWs() }
   }
 }
